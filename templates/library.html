@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en"><script>
+(function(){var t=localStorage.getItem('scholarai_theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();
+</script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScholarAI — Library</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f0e0c;
+            --surface: #1a1916;
+            --surface2: #222018;
+            --border: #2e2c28;
+            --gold: #c9a84c;
+            --gold-light: #e8c97a;
+            --text: #f0ece4;
+            --text-muted: #8a8578;
+            --success: #5cb85c;
+            --error: #e05c5c;
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 60% at 10% 10%, rgba(201,168,76,0.05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            position: fixed;
+            left: 0; top: 0; bottom: 0;
+            width: 240px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            padding: 28px 0;
+        }
+
+        .sidebar-logo {
+            padding: 0 24px 28px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-logo h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            color: var(--text);
+        }
+
+        .sidebar-logo p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            padding: 8px 12px 4px;
+            margin-top: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--radius);
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover { background: var(--surface2); color: var(--text); }
+        .nav-item.active { background: rgba(201,168,76,0.12); color: var(--gold); }
+        .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+
+        .sidebar-footer {
+            padding: 20px 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--radius);
+            color: var(--error);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover { background: rgba(224,92,92,0.1); }
+
+        /* MAIN */
+        .main {
+            margin-left: 240px;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .topbar {
+            padding: 24px 32px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .topbar h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+        }
+
+        .topbar p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+        .content { padding: 32px; }
+
+        /* ALERTS */
+        .alert {
+            padding: 14px 18px;
+            border-radius: var(--radius);
+            font-size: 13px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alert-success {
+            background: rgba(92,184,92,0.1);
+            border: 1px solid rgba(92,184,92,0.3);
+            color: var(--success);
+        }
+
+        .alert-error {
+            background: rgba(224,92,92,0.1);
+            border: 1px solid rgba(224,92,92,0.3);
+            color: var(--error);
+        }
+
+        /* UPLOAD CARD */
+        .upload-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 32px;
+            animation: fadeUp 0.4s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .upload-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 11px 14px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus { border-color: var(--gold); }
+
+        .form-group input[type="file"] {
+            padding: 8px 14px;
+            cursor: pointer;
+        }
+
+        .form-group select option { background: var(--surface); }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 11px 20px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border: none;
+            border-radius: var(--radius);
+            color: #0f0e0c;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* DROP ZONE */
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: var(--gold);
+            background: rgba(201,168,76,0.05);
+        }
+
+        .drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .drop-zone .dz-icon { font-size: 24px; margin-bottom: 6px; }
+        .drop-zone p { font-size: 13px; color: var(--text-muted); }
+        .drop-zone .dz-filename { font-size: 12px; color: var(--gold); margin-top: 4px; }
+
+        /* SECTION HEADER */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+        }
+
+        .book-count {
+            font-size: 12px;
+            color: var(--text-muted);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        /* BOOKS TABLE */
+        .books-table {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            animation: fadeUp 0.5s ease both;
+            animation-delay: 0.1s;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            padding: 14px 20px;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            background: var(--surface2);
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--surface2); }
+
+        tbody td {
+            padding: 16px 20px;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .book-title-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .book-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(201,168,76,0.12);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .book-name { font-weight: 500; color: var(--text); }
+        .book-filename { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+            background: rgba(201,168,76,0.12);
+            color: var(--gold);
+            border: 1px solid rgba(201,168,76,0.25);
+        }
+
+        /* ACTION BUTTONS */
+        .actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .btn-read {
+            background: rgba(201,168,76,0.12);
+            color: var(--gold);
+            border-color: rgba(201,168,76,0.25);
+        }
+
+        .btn-read:hover { background: rgba(201,168,76,0.22); }
+
+        .btn-summary {
+            background: rgba(92,184,92,0.1);
+            color: var(--success);
+            border-color: rgba(92,184,92,0.25);
+        }
+
+        .btn-summary:hover { background: rgba(92,184,92,0.2); }
+
+        .btn-quiz {
+            background: rgba(100,150,255,0.1);
+            color: #7eb3ff;
+            border-color: rgba(100,150,255,0.25);
+        }
+
+        .btn-quiz:hover { background: rgba(100,150,255,0.2); }
+
+        .btn-notes {
+            background: rgba(255,180,50,0.1);
+            color: #ffb432;
+            border-color: rgba(255,180,50,0.25);
+        }
+
+        .btn-notes:hover { background: rgba(255,180,50,0.2); }
+
+        .btn-delete {
+            background: rgba(224,92,92,0.1);
+            color: var(--error);
+            border-color: rgba(224,92,92,0.25);
+            border: none;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-delete:hover { background: rgba(224,92,92,0.2); }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-state p { font-size: 14px; margin-bottom: 8px; }
+        .empty-state small { font-size: 12px; }
+
+        [data-theme="light"] {
+            --bg: #f5f2eb;
+            --surface: #ffffff;
+            --surface2: #ede9e0;
+            --border: #d8d2c4;
+            --gold: #a0722a;
+            --gold-light: #c9942e;
+            --text: #1e1c18;
+            --text-muted: #6b6457;
+            --success: #2d7a2d;
+            --error: #c0392b;
+        }
+
+        .theme-toggle {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text-muted);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .theme-toggle:hover { border-color: var(--gold); color: var(--text); }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon">📚</div>
+        <h2>ScholarAI</h2>
+        <p>Reading Intelligence</p>
+    </div>
+
+    <nav class="sidebar-nav">
+        <span class="nav-label">Main</span>
+        <a href="/" class="nav-item">
+            <span class="icon">🏠</span> Dashboard
+        </a>
+        <a href="/library" class="nav-item active">
+            <span class="icon">📖</span> Library
+        </a>
+
+        <span class="nav-label">Settings</span>
+        <a href="/#pw-section" class="nav-item">
+            <span class="icon">🔑</span> Change Password
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">☀️</button>
+        <a href="/logout" class="logout-btn">
+            <span>🚪</span> Logout
+        </a>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+    <div class="topbar">
+        <div>
+            <h1>Library</h1>
+            <p>Upload and manage your books & documents</p>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Alerts -->
+        {% if success %}
+        <div class="alert alert-success">{{ success }}</div>
+        {% endif %}
+        {% if error %}
+        <div class="alert alert-error">{{ error }}</div>
+        {% endif %}
+
+        <!-- Upload Card -->
+        <div class="upload-card">
+            <h3>📤 Upload New Book</h3>
+            <form method="POST" action="/upload-book" enctype="multipart/form-data">
+                <div class="upload-grid">
+                    <div class="form-group">
+                        <label>Book Title *</label>
+                        <input type="text" name="title" placeholder="e.g. Physics Part 1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <input type="text" name="subject" placeholder="e.g. Science, Math, History">
+                    </div>
+                    <div class="form-group">
+                        <label>PDF File *</label>
+                        <div class="drop-zone" id="dropZone">
+                            <input type="file" name="pdf" accept=".pdf" required id="pdfInput">
+                            <div class="dz-icon">📄</div>
+                            <p>Click or drag PDF here</p>
+                            <div class="dz-filename" id="dzFilename"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn-primary">
+                            ⬆️ Upload
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Books List -->
+        <div class="section-header">
+            <h2 class="section-title">Your Books</h2>
+            <span class="book-count">{{ books|length }} book(s)</span>
+        </div>
+
+        <div class="books-table">
+            {% if books %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Book</th>
+                        <th>Subject</th>
+                        <th>Pages</th>
+                        <th>Uploaded</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for book in books %}
+                    <tr>
+                        <td>
+                            <div class="book-title-cell">
+                                <div class="book-icon">📗</div>
+                                <div>
+                                    <div class="book-name">{{ book[1] }}</div>
+                                    <div class="book-filename">{{ book[2] }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge">{{ book[3] or 'General' }}</span>
+                        </td>
+                        <td>{{ book[4] }} pages</td>
+                        <td style="color:var(--text-muted); font-size:12px;">
+                            {{ book[5][:10] if book[5] else '—' }}
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <a href="/reader/{{ book[0] }}" class="btn-action btn-read">📖 Read</a>
+                                <a href="/summary/{{ book[0] }}" class="btn-action btn-summary">📋 Summary</a>
+                                <a href="/quiz/{{ book[0] }}" class="btn-action btn-quiz">❓ Quiz</a>
+                                <a href="/notes/{{ book[0] }}" class="btn-action btn-notes">📝 Notes</a>
+                                <a href="/search/{{ book[0] }}" class="btn-action btn-read">🔍 Search</a>
+                                <a href="/progress/{{ book[0] }}" class="btn-action btn-summary">📊 Progress</a>
+                                <form method="POST" action="/delete-book/{{ book[0] }}"
+                                      onsubmit="return confirm('Delete this book?')"
+                                      style="display:inline;">
+                                    <button type="submit" class="btn-action btn-delete">🗑️ Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <p>No books uploaded yet.</p>
+                <small>Upload your first PDF book above to get started!</small>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</main>
+
+<script>
+    // Show filename on file select
+    document.getElementById('pdfInput').addEventListener('change', function() {
+        const name = this.files[0]?.name || '';
+        document.getElementById('dzFilename').textContent = name;
+    });
+
+    // Drag & Drop
+    const dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', e => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file && file.name.endsWith('.pdf')) {
+            document.getElementById('pdfInput').files = e.dataTransfer.files;
+            document.getElementById('dzFilename').textContent = file.name;
+        }
+    });
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en"><script>
+(function(){var t=localStorage.getItem('scholarai_theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();
+</script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScholarAI — Progress</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f0e0c;
+            --surface: #1a1916;
+            --surface2: #222018;
+            --border: #2e2c28;
+            --gold: #c9a84c;
+            --gold-light: #e8c97a;
+            --text: #f0ece4;
+            --text-muted: #8a8578;
+            --success: #5cb85c;
+            --error: #e05c5c;
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+        body::before {
+            content: ''; position: fixed; inset: 0;
+            background: radial-gradient(ellipse 80% 60% at 10% 10%, rgba(201,168,76,0.05) 0%, transparent 60%);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* SIDEBAR */
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 240px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 100; padding: 28px 0; }
+        .sidebar-logo { padding: 0 24px 28px; border-bottom: 1px solid var(--border); }
+        .sidebar-logo .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
+        .sidebar-logo h2 { font-family: 'Playfair Display', serif; font-size: 18px; }
+        .sidebar-logo p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+        .sidebar-nav { flex: 1; padding: 20px 12px; display: flex; flex-direction: column; gap: 4px; }
+        .nav-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); padding: 8px 12px 4px; margin-top: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius); color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+        .nav-item:hover { background: var(--surface2); color: var(--text); }
+        .nav-item.active { background: rgba(92,184,92,0.1); color: var(--success); }
+        .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+        .sidebar-footer { padding: 20px 12px; border-top: 1px solid var(--border); }
+        .logout-btn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius); color: var(--error); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+        .logout-btn:hover { background: rgba(224,92,92,0.1); }
+
+        /* MAIN */
+        .main { margin-left: 240px; min-height: 100vh; position: relative; z-index: 1; }
+
+        .topbar { padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; }
+        .back-btn { padding: 8px 14px; border-radius: var(--radius); background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted); text-decoration: none; font-size: 13px; transition: all 0.2s; }
+        .back-btn:hover { color: var(--text); border-color: var(--gold); }
+        .topbar h1 { font-family: 'Playfair Display', serif; font-size: 22px; }
+        .topbar p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+        .content { padding: 32px; max-width: 860px; }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* STATS */
+        .stats-row {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+            padding: 24px; animation: fadeUp 0.4s ease both; text-align: center;
+        }
+        .stat-card:nth-child(1) { animation-delay: 0.05s; }
+        .stat-card:nth-child(2) { animation-delay: 0.1s; }
+        .stat-card:nth-child(3) { animation-delay: 0.15s; }
+        .stat-icon { font-size: 24px; margin-bottom: 8px; }
+        .stat-value { font-family: 'Playfair Display', serif; font-size: 36px; color: var(--gold); line-height: 1; margin-bottom: 4px; }
+        .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+
+        /* PROGRESS CARD */
+        .progress-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 20px; padding: 28px; margin-bottom: 24px;
+            animation: fadeUp 0.4s ease both; animation-delay: 0.2s;
+        }
+        .progress-card h3 { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 20px; }
+
+        .progress-label-row {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+        }
+        .progress-label { font-size: 13px; color: var(--text-muted); }
+        .progress-pct { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--gold); }
+
+        .progress-track {
+            height: 12px; background: var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 8px;
+        }
+        .progress-fill {
+            height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light));
+            border-radius: 6px; transition: width 1s ease;
+        }
+        .progress-sub { font-size: 12px; color: var(--text-muted); }
+
+        /* READING GOAL */
+        .goal-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 20px; padding: 28px; margin-bottom: 24px;
+            animation: fadeUp 0.4s ease both; animation-delay: 0.25s;
+        }
+        .goal-card h3 { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 16px; }
+
+        .goal-row { display: flex; gap: 12px; align-items: flex-end; }
+        .form-group label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; }
+        .form-group input { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 11px 14px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .form-group input:focus { border-color: var(--gold); }
+
+        .btn-primary { padding: 11px 24px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); border: none; border-radius: var(--radius); color: #0f0e0c; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s, transform 0.2s; }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .current-goal {
+            background: rgba(201,168,76,0.07); border: 1px solid rgba(201,168,76,0.2);
+            border-radius: var(--radius); padding: 16px; margin-top: 16px;
+            font-size: 14px; color: var(--text);
+        }
+        .current-goal strong { color: var(--gold); }
+
+        /* PLAN TABLE */
+        .plan-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 20px; padding: 28px; margin-bottom: 24px; display: none;
+            animation: fadeUp 0.4s ease;
+        }
+        .plan-card.show { display: block; }
+        .plan-card h3 { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 16px; }
+
+        .plan-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .plan-table th {
+            text-align: left; padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            font-size: 11px; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--text-muted);
+        }
+        .plan-table td { padding: 10px 14px; border-bottom: 1px solid rgba(46,44,40,0.5); }
+        .plan-table tr:last-child td { border-bottom: none; }
+        .plan-table tr:hover td { background: rgba(201,168,76,0.04); }
+
+        /* HISTORY */
+        .history-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 20px; padding: 28px;
+            animation: fadeUp 0.4s ease both; animation-delay: 0.3s;
+        }
+        .history-card h3 { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 16px; }
+
+        .history-list { max-height: 280px; overflow-y: auto; }
+        .history-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .history-item:last-child { border-bottom: none; }
+        .history-page { font-size: 14px; color: var(--text); }
+        .history-page span { color: var(--gold); font-weight: 600; }
+        .history-time { font-size: 11px; color: var(--text-muted); }
+
+        .empty-state { text-align: center; padding: 32px; color: var(--text-muted); font-size: 13px; }
+        .empty-icon { font-size: 32px; margin-bottom: 8px; }
+
+        [data-theme="light"] {
+            --bg: #f5f2eb;
+            --surface: #ffffff;
+            --surface2: #ede9e0;
+            --border: #d8d2c4;
+            --gold: #a0722a;
+            --gold-light: #c9942e;
+            --text: #1e1c18;
+            --text-muted: #6b6457;
+            --success: #2d7a2d;
+            --error: #c0392b;
+        }
+
+        .theme-toggle {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text-muted);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .theme-toggle:hover { border-color: var(--gold); color: var(--text); }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon">📚</div>
+        <h2>ScholarAI</h2>
+        <p>Reading Intelligence</p>
+    </div>
+    <nav class="sidebar-nav">
+        <span class="nav-label">Main</span>
+        <a href="/" class="nav-item"><span class="icon">🏠</span> Dashboard</a>
+        <a href="/library" class="nav-item"><span class="icon">📖</span> Library</a>
+        <span class="nav-label">This Book</span>
+        <a href="/reader/{{ book[0] }}" class="nav-item"><span class="icon">📄</span> Read</a>
+        <a href="/summary/{{ book[0] }}" class="nav-item"><span class="icon">📋</span> Summary</a>
+        <a href="/quiz/{{ book[0] }}" class="nav-item"><span class="icon">❓</span> Quiz</a>
+        <a href="/notes/{{ book[0] }}" class="nav-item"><span class="icon">📝</span> Notes</a>
+        <a href="/search/{{ book[0] }}" class="nav-item"><span class="icon">🔍</span> Search</a>
+        <a href="/progress/{{ book[0] }}" class="nav-item active"><span class="icon">📊</span> Progress</a>
+    </nav>
+    <div class="sidebar-footer">
+        <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">☀️</button>
+        <a href="/logout" class="logout-btn"><span>🚪</span> Logout</a>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+    <div class="topbar">
+        <a href="/reader/{{ book[0] }}" class="back-btn">← Reader</a>
+        <div>
+            <h1>Reading Progress</h1>
+            <p>{{ book[1] }}</p>
+        </div>
+    </div>
+
+    <div class="content">
+        <!-- Stats Row -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon">📄</div>
+                <div class="stat-value">{{ pages_read }}</div>
+                <div class="stat-label">Pages Read</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📚</div>
+                <div class="stat-value">{{ total_pages }}</div>
+                <div class="stat-label">Total Pages</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-value">{{ progress_percent }}%</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+
+        <!-- Progress Bar Card -->
+        <div class="progress-card">
+            <h3>📈 Reading Progress</h3>
+            <div class="progress-label-row">
+                <span class="progress-label">{{ pages_read }} of {{ total_pages }} pages read</span>
+                <span class="progress-pct">{{ progress_percent }}%</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <div class="progress-sub">
+                {% if progress_percent >= 100 %}
+                    🎉 Book completed! Congratulations!
+                {% elif progress_percent >= 75 %}
+                    🔥 Almost done! Keep going!
+                {% elif progress_percent >= 50 %}
+                    💪 Halfway there! Great progress!
+                {% elif progress_percent >= 25 %}
+                    📖 Good start! Keep reading!
+                {% else %}
+                    🚀 Just getting started!
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Reading Goal -->
+        <div class="goal-card">
+            <h3>🎯 Set Reading Goal</h3>
+            <div class="goal-row">
+                <div class="form-group">
+                    <label>Target Days</label>
+                    <input type="number" id="targetDays" placeholder="e.g. 30" min="1" max="365" style="width:130px;"
+                           value="{{ goal[2] if goal else '' }}">
+                </div>
+                <button class="btn-primary" onclick="setGoal()">Set Goal</button>
+            </div>
+
+            {% if goal %}
+            <div class="current-goal">
+                📅 Current Goal: Finish in <strong>{{ goal[2] }} days</strong> —
+                read <strong>{{ goal[3] }} pages/day</strong>
+                (started {{ goal[4][:10] if goal[4] else '—' }})
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Reading Plan (shown after setting goal) -->
+        <div class="plan-card" id="planCard">
+            <h3>📅 Reading Schedule</h3>
+            <table class="plan-table">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>From Page</th>
+                        <th>To Page</th>
+                        <th>Pages</th>
+                    </tr>
+                </thead>
+                <tbody id="planBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Reading History -->
+        <div class="history-card">
+            <h3>📜 Reading History</h3>
+            <div class="history-list">
+                {% if history %}
+                    {% for h in history[:50] %}
+                    <div class="history-item">
+                        <div class="history-page">Read <span>Page {{ h[2] }}</span></div>
+                        <div class="history-time">{{ h[3][:16] if h[3] else '—' }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <p>No reading history yet. Start reading!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    const bookId = {{ book[0] }};
+
+    // Animate progress bar
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            document.getElementById('progressFill').style.width = '{{ progress_percent }}%';
+        }, 300);
+    });
+
+    function setGoal() {
+        const targetDays = document.getElementById('targetDays').value;
+        if (!targetDays || targetDays < 1) {
+            alert('Please enter a valid number of days.');
+            return;
+        }
+
+        fetch('/api/set-goal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ book_id: bookId, target_days: targetDays })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.plan) {
+                renderPlan(data.plan);
+            } else {
+                alert(data.error || 'Failed to set goal.');
+            }
+        });
+    }
+
+    function renderPlan(plan) {
+        const tbody = document.getElementById('planBody');
+        tbody.innerHTML = '';
+
+        plan.schedule.forEach(s => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>Day ${s.day}</td>
+                <td>Page ${s.from_page}</td>
+                <td>Page ${s.to_page}</td>
+                <td>${s.pages_count} pages</td>`;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('planCard').classList.add('show');
+        document.getElementById('planCard').scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>

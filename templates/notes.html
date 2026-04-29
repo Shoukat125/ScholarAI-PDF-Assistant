@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en"><script>
+(function(){var t=localStorage.getItem('scholarai_theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();
+</script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScholarAI — Notes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f0e0c;
+            --surface: #1a1916;
+            --surface2: #222018;
+            --border: #2e2c28;
+            --gold: #c9a84c;
+            --gold-light: #e8c97a;
+            --text: #f0ece4;
+            --text-muted: #8a8578;
+            --success: #5cb85c;
+            --error: #e05c5c;
+            --amber: #ffb432;
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+        body::before {
+            content: ''; position: fixed; inset: 0;
+            background: radial-gradient(ellipse 80% 60% at 10% 10%, rgba(201,168,76,0.05) 0%, transparent 60%);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* SIDEBAR */
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 240px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 100; padding: 28px 0; }
+        .sidebar-logo { padding: 0 24px 28px; border-bottom: 1px solid var(--border); }
+        .sidebar-logo .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
+        .sidebar-logo h2 { font-family: 'Playfair Display', serif; font-size: 18px; }
+        .sidebar-logo p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+        .sidebar-nav { flex: 1; padding: 20px 12px; display: flex; flex-direction: column; gap: 4px; }
+        .nav-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); padding: 8px 12px 4px; margin-top: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius); color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+        .nav-item:hover { background: var(--surface2); color: var(--text); }
+        .nav-item.active { background: rgba(255,180,50,0.1); color: var(--amber); }
+        .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+        .sidebar-footer { padding: 20px 12px; border-top: 1px solid var(--border); }
+        .logout-btn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius); color: var(--error); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+        .logout-btn:hover { background: rgba(224,92,92,0.1); }
+
+        /* MAIN */
+        .main { margin-left: 240px; min-height: 100vh; position: relative; z-index: 1; }
+
+        .topbar { padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .topbar-left { display: flex; align-items: center; gap: 16px; }
+        .back-btn { padding: 8px 14px; border-radius: var(--radius); background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted); text-decoration: none; font-size: 13px; transition: all 0.2s; }
+        .back-btn:hover { color: var(--text); border-color: var(--gold); }
+        .topbar h1 { font-family: 'Playfair Display', serif; font-size: 22px; }
+        .topbar p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+        .content { padding: 32px; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ADD NOTE CARD */
+        .add-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 20px; padding: 28px; margin-bottom: 32px;
+            animation: fadeUp 0.4s ease;
+            max-width: 800px;
+        }
+        .add-card h3 { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 20px; }
+
+        .add-row { display: flex; gap: 12px; align-items: flex-end; }
+
+        .form-group label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; }
+        .form-group input, .form-group textarea {
+            background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 11px 14px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s;
+        }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--gold); }
+        .form-group textarea { resize: vertical; min-height: 90px; width: 100%; }
+
+        .btn-primary {
+            padding: 11px 24px; background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border: none; border-radius: var(--radius); color: #0f0e0c;
+            font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: opacity 0.2s, transform 0.2s; white-space: nowrap;
+        }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* TOAST */
+        .toast {
+            position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 12px 24px; font-size: 14px;
+            color: var(--success); z-index: 999; display: none;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .toast.show { display: block; animation: fadeUp 0.3s ease; }
+
+        /* NOTES GRID */
+        .notes-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px; max-width: 800px;
+        }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 18px; }
+        .notes-count { font-size: 12px; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border); padding: 5px 12px; border-radius: 20px; }
+
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            max-width: 800px;
+        }
+
+        .note-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 16px; padding: 20px;
+            transition: all 0.2s; animation: fadeUp 0.4s ease both;
+            position: relative;
+        }
+        .note-card:hover { border-color: rgba(255,180,50,0.4); box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+
+        .note-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: linear-gradient(180deg, var(--amber), rgba(255,180,50,0.3));
+            border-radius: 4px 0 0 4px;
+        }
+
+        .note-top {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .note-page {
+            font-size: 11px; background: rgba(255,180,50,0.1);
+            border: 1px solid rgba(255,180,50,0.2); color: var(--amber);
+            padding: 3px 10px; border-radius: 20px;
+        }
+        .note-date { font-size: 11px; color: var(--text-muted); }
+
+        .note-text {
+            font-size: 14px; line-height: 1.6; color: var(--text);
+            white-space: pre-wrap; word-break: break-word;
+        }
+
+        .note-footer { margin-top: 14px; display: flex; justify-content: flex-end; }
+
+        .btn-del {
+            padding: 5px 12px; border-radius: 8px; border: none;
+            background: rgba(224,92,92,0.08); color: var(--error);
+            font-size: 12px; cursor: pointer; transition: background 0.2s;
+        }
+        .btn-del:hover { background: rgba(224,92,92,0.18); }
+
+        .empty-state {
+            text-align: center; padding: 60px 20px;
+            background: var(--surface); border: 1px dashed var(--border);
+            border-radius: 16px; color: var(--text-muted);
+            max-width: 800px;
+        }
+        .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+        .empty-state p { font-size: 14px; }
+
+        [data-theme="light"] {
+            --bg: #f5f2eb;
+            --surface: #ffffff;
+            --surface2: #ede9e0;
+            --border: #d8d2c4;
+            --gold: #a0722a;
+            --gold-light: #c9942e;
+            --text: #1e1c18;
+            --text-muted: #6b6457;
+            --success: #2d7a2d;
+            --error: #c0392b;
+        }
+
+        .theme-toggle {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text-muted);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .theme-toggle:hover { border-color: var(--gold); color: var(--text); }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon">📚</div>
+        <h2>ScholarAI</h2>
+        <p>Reading Intelligence</p>
+    </div>
+    <nav class="sidebar-nav">
+        <span class="nav-label">Main</span>
+        <a href="/" class="nav-item"><span class="icon">🏠</span> Dashboard</a>
+        <a href="/library" class="nav-item"><span class="icon">📖</span> Library</a>
+        <span class="nav-label">This Book</span>
+        <a href="/reader/{{ book[0] }}" class="nav-item"><span class="icon">📄</span> Read</a>
+        <a href="/summary/{{ book[0] }}" class="nav-item"><span class="icon">📋</span> Summary</a>
+        <a href="/quiz/{{ book[0] }}" class="nav-item"><span class="icon">❓</span> Quiz</a>
+        <a href="/notes/{{ book[0] }}" class="nav-item active"><span class="icon">📝</span> Notes</a>
+        <a href="/search/{{ book[0] }}" class="nav-item"><span class="icon">🔍</span> Search</a>
+        <a href="/progress/{{ book[0] }}" class="nav-item"><span class="icon">📊</span> Progress</a>
+    </nav>
+    <div class="sidebar-footer">
+        <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">☀️</button>
+        <a href="/logout" class="logout-btn"><span>🚪</span> Logout</a>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+    <div class="topbar">
+        <div class="topbar-left">
+            <a href="/reader/{{ book[0] }}" class="back-btn">← Reader</a>
+            <div>
+                <h1>Notes</h1>
+                <p>{{ book[1] }} · {{ notes|length }} note(s)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <!-- Add Note Card -->
+        <div class="add-card">
+            <h3>📝 Add New Note</h3>
+            <div style="margin-bottom:12px;">
+                <div class="form-group">
+                    <label>Page Number</label>
+                    <input type="number" id="notePageInput" placeholder="e.g. 12" min="1" max="{{ total_pages }}" style="width:140px;">
+                </div>
+            </div>
+            <div style="margin-bottom:12px;">
+                <div class="form-group">
+                    <label>Note</label>
+                    <textarea id="noteTextInput" placeholder="Write your note here..."></textarea>
+                </div>
+            </div>
+            <button class="btn-primary" onclick="addNote()">💾 Save Note</button>
+        </div>
+
+        <!-- Notes List -->
+        <div class="notes-header">
+            <h2 class="section-title">All Notes</h2>
+            <span class="notes-count" id="notesCount">{{ notes|length }} note(s)</span>
+        </div>
+
+        <div class="notes-grid" id="notesGrid">
+            {% if notes %}
+                {% for note in notes %}
+                <div class="note-card" id="noteCard-{{ note[0] }}">
+                    <div class="note-top">
+                        <span class="note-page">📄 Page {{ note[2] or '—' }}</span>
+                        <span class="note-date">{{ note[4][:10] if note[4] else '' }}</span>
+                    </div>
+                    <div class="note-text">{{ note[3] }}</div>
+                    <div class="note-footer">
+                        <button class="btn-del" onclick="deleteNote({{ note[0] }})">🗑 Delete</button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="empty-state" id="emptyState" style="grid-column:1/-1;">
+                <div class="empty-icon">📭</div>
+                <p>No notes yet. Start reading and capture your thoughts!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</main>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✅ Note saved!</div>
+
+<script>
+    const bookId = {{ book[0] }};
+    let noteCount = {{ notes|length }};
+
+    function addNote() {
+        const page = document.getElementById('notePageInput').value;
+        const text = document.getElementById('noteTextInput').value.trim();
+
+        if (!text) { alert('Please enter a note.'); return; }
+
+        fetch('/api/add-note', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ book_id: bookId, page_number: page || null, note_text: text })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                // Clear inputs
+                document.getElementById('noteTextInput').value = '';
+                document.getElementById('notePageInput').value = '';
+
+                // Remove empty state if present
+                const empty = document.getElementById('emptyState');
+                if (empty) empty.remove();
+
+                // Add card to grid
+                const grid = document.getElementById('notesGrid');
+                const card = document.createElement('div');
+                const today = new Date().toISOString().slice(0, 10);
+                noteCount++;
+
+                card.className = 'note-card';
+                card.innerHTML = `
+                    <div class="note-top">
+                        <span class="note-page">📄 Page ${page || '—'}</span>
+                        <span class="note-date">${today}</span>
+                    </div>
+                    <div class="note-text">${text}</div>
+                    <div class="note-footer">
+                        <button class="btn-del" onclick="this.closest('.note-card').remove(); noteCount--; updateCount();">🗑 Delete</button>
+                    </div>`;
+                grid.prepend(card);
+                updateCount();
+
+                // Show toast
+                const toast = document.getElementById('toast');
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2500);
+            }
+        });
+    }
+
+    function deleteNote(noteId) {
+        if (!confirm('Delete this note?')) return;
+        fetch('/api/delete-note/' + noteId, { method: 'POST' })
+        .then(r => r.json())
+        .then(() => {
+            const el = document.getElementById('noteCard-' + noteId);
+            if (el) { el.remove(); noteCount--; updateCount(); }
+        });
+    }
+
+    function updateCount() {
+        document.getElementById('notesCount').textContent = noteCount + ' note(s)';
+        document.querySelector('.topbar p').textContent = '{{ book[1] }} · ' + noteCount + ' note(s)';
+    }
+</script>
+
+</body>
+</html>

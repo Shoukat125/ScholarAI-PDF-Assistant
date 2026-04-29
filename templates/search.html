@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en"><script>
+(function(){var t=localStorage.getItem('scholarai_theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();
+</script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScholarAI — Search</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f0e0c;
+            --surface: #1a1916;
+            --surface2: #222018;
+            --border: #2e2c28;
+            --gold: #c9a84c;
+            --gold-light: #e8c97a;
+            --text: #f0ece4;
+            --text-muted: #8a8578;
+            --success: #5cb85c;
+            --error: #e05c5c;
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+        body::before {
+            content: ''; position: fixed; inset: 0;
+            background: radial-gradient(ellipse 80% 60% at 10% 10%, rgba(201,168,76,0.05) 0%, transparent 60%);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* SIDEBAR */
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 240px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 100; padding: 28px 0; }
+        .sidebar-logo { padding: 0 24px 28px; border-bottom: 1px solid var(--border); }
+        .sidebar-logo .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
+        .sidebar-logo h2 { font-family: 'Playfair Display', serif; font-size: 18px; }
+        .sidebar-logo p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+        .sidebar-nav { flex: 1; padding: 20px 12px; display: flex; flex-direction: column; gap: 4px; }
+        .nav-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); padding: 8px 12px 4px; margin-top: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius); color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+        .nav-item:hover { background: var(--surface2); color: var(--text); }
+        .nav-item.active { background: rgba(201,168,76,0.12); color: var(--gold); }
+        .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+        .sidebar-footer { padding: 20px 12px; border-top: 1px solid var(--border); }
+        .logout-btn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius); color: var(--error); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+        .logout-btn:hover { background: rgba(224,92,92,0.1); }
+
+        /* MAIN */
+        .main { margin-left: 240px; min-height: 100vh; position: relative; z-index: 1; }
+
+        .topbar { padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; }
+        .back-btn { padding: 8px 14px; border-radius: var(--radius); background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted); text-decoration: none; font-size: 13px; transition: all 0.2s; }
+        .back-btn:hover { color: var(--text); border-color: var(--gold); }
+        .topbar h1 { font-family: 'Playfair Display', serif; font-size: 22px; }
+        .topbar p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+        .content { padding: 32px; max-width: 860px; }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* SEARCH BAR */
+        .search-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 20px; padding: 28px; margin-bottom: 32px;
+            animation: fadeUp 0.4s ease;
+        }
+        .search-card h3 { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 20px; }
+
+        .search-row {
+            display: flex; gap: 12px; align-items: stretch;
+        }
+
+        .search-input-wrap {
+            flex: 1; position: relative;
+        }
+
+        .search-icon {
+            position: absolute; left: 16px; top: 50%;
+            transform: translateY(-50%); font-size: 16px;
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 100%; background: var(--bg);
+            border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 14px 14px 14px 46px;
+            color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px;
+            outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .search-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.1); }
+        .search-input::placeholder { color: var(--text-muted); }
+
+        .btn-search {
+            padding: 14px 24px; background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border: none; border-radius: var(--radius); color: #0f0e0c;
+            font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+            cursor: pointer; transition: opacity 0.2s, transform 0.2s;
+        }
+        .btn-search:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-search:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* SPINNER */
+        .spinner-wrap { text-align: center; padding: 40px; display: none; }
+        .spinner-wrap.show { display: block; }
+        .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner-wrap p { font-size: 13px; color: var(--text-muted); }
+
+        /* AI ANSWER */
+        .ai-answer {
+            background: var(--surface); border: 1px solid rgba(201,168,76,0.3);
+            border-radius: 20px; padding: 28px; margin-bottom: 24px;
+            display: none; animation: fadeUp 0.4s ease;
+        }
+        .ai-answer.show { display: block; }
+
+        .ai-header {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+        }
+        .ai-badge {
+            padding: 4px 12px; border-radius: 20px; font-size: 11px;
+            background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.2);
+            color: var(--gold); text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .ai-text {
+            font-size: 14px; line-height: 1.8; color: var(--text); white-space: pre-wrap;
+        }
+
+        /* RESULTS */
+        .results-header {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+        }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 18px; }
+        .results-count { font-size: 12px; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border); padding: 5px 12px; border-radius: 20px; }
+
+        .results-area { display: none; }
+        .results-area.show { display: block; }
+
+        .result-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 16px; padding: 20px; margin-bottom: 14px;
+            transition: all 0.2s; animation: fadeUp 0.3s ease both;
+            cursor: pointer;
+        }
+        .result-card:hover { border-color: var(--gold); transform: translateX(4px); }
+
+        .result-meta {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+        }
+        .page-badge {
+            padding: 3px 10px; border-radius: 20px; font-size: 11px;
+            background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.2);
+            color: var(--gold); font-weight: 600;
+        }
+        .read-link {
+            font-size: 11px; color: var(--text-muted); text-decoration: none;
+            padding: 3px 10px; border-radius: 20px; border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+        .read-link:hover { color: var(--gold); border-color: var(--gold); }
+
+        .snippet {
+            font-size: 13px; line-height: 1.7; color: var(--text-muted);
+        }
+
+        .highlight {
+            background: rgba(201,168,76,0.2); color: var(--gold);
+            border-radius: 3px; padding: 0 2px;
+        }
+
+        .no-results {
+            text-align: center; padding: 48px;
+            background: var(--surface); border: 1px dashed var(--border);
+            border-radius: 16px; color: var(--text-muted);
+        }
+        .no-results .icon { font-size: 36px; margin-bottom: 10px; }
+        .no-results p { font-size: 13px; }
+
+        .empty-state {
+            text-align: center; padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-state h3 { font-family: 'Playfair Display', serif; font-size: 20px; margin-bottom: 8px; color: var(--text); }
+        .empty-state p { font-size: 13px; }
+
+        [data-theme="light"] {
+            --bg: #f5f2eb;
+            --surface: #ffffff;
+            --surface2: #ede9e0;
+            --border: #d8d2c4;
+            --gold: #a0722a;
+            --gold-light: #c9942e;
+            --text: #1e1c18;
+            --text-muted: #6b6457;
+            --success: #2d7a2d;
+            --error: #c0392b;
+        }
+
+        .theme-toggle {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text-muted);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .theme-toggle:hover { border-color: var(--gold); color: var(--text); }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon">📚</div>
+        <h2>ScholarAI</h2>
+        <p>Reading Intelligence</p>
+    </div>
+    <nav class="sidebar-nav">
+        <span class="nav-label">Main</span>
+        <a href="/" class="nav-item"><span class="icon">🏠</span> Dashboard</a>
+        <a href="/library" class="nav-item"><span class="icon">📖</span> Library</a>
+        <span class="nav-label">This Book</span>
+        <a href="/reader/{{ book[0] }}" class="nav-item"><span class="icon">📄</span> Read</a>
+        <a href="/summary/{{ book[0] }}" class="nav-item"><span class="icon">📋</span> Summary</a>
+        <a href="/quiz/{{ book[0] }}" class="nav-item"><span class="icon">❓</span> Quiz</a>
+        <a href="/notes/{{ book[0] }}" class="nav-item"><span class="icon">📝</span> Notes</a>
+        <a href="/search/{{ book[0] }}" class="nav-item active"><span class="icon">🔍</span> Search</a>
+        <a href="/progress/{{ book[0] }}" class="nav-item"><span class="icon">📊</span> Progress</a>
+    </nav>
+    <div class="sidebar-footer">
+        <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">☀️</button>
+        <a href="/logout" class="logout-btn"><span>🚪</span> Logout</a>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+    <div class="topbar">
+        <a href="/reader/{{ book[0] }}" class="back-btn">← Reader</a>
+        <div>
+            <h1>Search Book</h1>
+            <p>{{ book[1] }}</p>
+        </div>
+    </div>
+
+    <div class="content">
+        <!-- Search Card -->
+        <div class="search-card">
+            <h3>🔍 Search Inside Book</h3>
+            <div class="search-row">
+                <div class="search-input-wrap">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" id="searchInput"
+                           placeholder="Search for any word, topic or phrase..."
+                           onkeydown="if(event.key==='Enter') doSearch()">
+                </div>
+                <button class="btn-search" id="searchBtn" onclick="doSearch()">Search →</button>
+            </div>
+            <p style="margin-top:12px; font-size:12px; color:var(--text-muted);">
+                💡 AI will also provide a smart answer based on search results
+            </p>
+        </div>
+
+        <!-- Spinner -->
+        <div class="spinner-wrap" id="spinnerWrap">
+            <div class="spinner"></div>
+            <p>Searching through book content...</p>
+        </div>
+
+        <!-- AI Answer -->
+        <div class="ai-answer" id="aiAnswer">
+            <div class="ai-header">
+                <span>🤖</span>
+                <span class="ai-badge">ScholarAI Answer</span>
+            </div>
+            <div class="ai-text" id="aiText"></div>
+        </div>
+
+        <!-- Results -->
+        <div class="results-area" id="resultsArea">
+            <div class="results-header">
+                <h2 class="section-title">Search Results</h2>
+                <span class="results-count" id="resultsCount">0 results</span>
+            </div>
+            <div id="resultsList"></div>
+        </div>
+
+        <!-- Default Empty State -->
+        <div class="empty-state" id="defaultState">
+            <div class="icon">🔍</div>
+            <h3>Search Your Book</h3>
+            <p>Type any word or phrase to find it anywhere in the book.<br>ScholarAI will also answer your query intelligently.</p>
+        </div>
+    </div>
+</main>
+
+<script>
+    const bookId = {{ book[0] }};
+    let lastQuery = '';
+
+    function doSearch() {
+        const query = document.getElementById('searchInput').value.trim();
+        if (!query) return;
+        if (query.length < 2) {
+            showSearchError('Please enter at least 2 characters.');
+            return;
+        }
+
+        lastQuery = query;
+        document.getElementById('spinnerWrap').classList.add('show');
+        document.getElementById('aiAnswer').classList.remove('show');
+        document.getElementById('resultsArea').classList.remove('show');
+        document.getElementById('defaultState').style.display = 'none';
+        document.getElementById('searchBtn').disabled = true;
+        clearSearchError();
+
+        fetch('/api/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ book_id: bookId, query: query })
+        })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('spinnerWrap').classList.remove('show');
+            document.getElementById('searchBtn').disabled = false;
+
+            if (data.error) {
+                showSearchError(data.error);
+                return;
+            }
+
+            // AI Answer
+            if (data.answer) {
+                document.getElementById('aiText').textContent = data.answer;
+                document.getElementById('aiAnswer').classList.add('show');
+            }
+
+            // Results
+            const results = data.results || [];
+            document.getElementById('resultsCount').textContent = results.length + ' result(s)';
+
+            const list = document.getElementById('resultsList');
+            list.innerHTML = '';
+
+            if (results.length === 0) {
+                list.innerHTML = `
+                    <div class="no-results">
+                        <div class="icon">😔</div>
+                        <p>No matches found for "<strong>${escapeHtml(query)}</strong>". Try a different keyword.</p>
+                    </div>`;
+            } else {
+                results.forEach((r, i) => {
+                    const card = document.createElement('div');
+                    card.className = 'result-card';
+                    card.style.animationDelay = (i * 0.05) + 's';
+
+                    const highlightedSnippet = r.snippet.replace(
+                        new RegExp('(' + escapeRegex(query) + ')', 'gi'),
+                        '<span class="highlight">$1</span>'
+                    );
+
+                    card.innerHTML = `
+                        <div class="result-meta">
+                            <span class="page-badge">Page ${r.page_number}</span>
+                            <a href="/reader/${bookId}?page=${r.page_number}" class="read-link" onclick="event.stopPropagation()">Open Page →</a>
+                        </div>
+                        <div class="snippet">${highlightedSnippet}</div>`;
+
+                    card.onclick = () => {
+                        window.location.href = `/reader/${bookId}?page=${r.page_number}`;
+                    };
+
+                    list.appendChild(card);
+                });
+            }
+
+            document.getElementById('resultsArea').classList.add('show');
+        })
+        .catch(err => {
+            document.getElementById('spinnerWrap').classList.remove('show');
+            document.getElementById('searchBtn').disabled = false;
+            showSearchError('Network error. Please check your connection and try again.');
+        });
+    }
+
+    function showSearchError(msg) {
+        let errDiv = document.getElementById('searchError');
+        if (!errDiv) {
+            errDiv = document.createElement('div');
+            errDiv.id = 'searchError';
+            errDiv.style.cssText = 'background:rgba(224,92,92,0.1);border:1px solid rgba(224,92,92,0.3);border-radius:12px;padding:12px 16px;font-size:13px;color:var(--error);margin-bottom:16px;';
+            document.querySelector('.search-card').after(errDiv);
+        }
+        errDiv.textContent = '⚠️ ' + msg;
+        errDiv.style.display = 'block';
+    }
+
+    function clearSearchError() {
+        const e = document.getElementById('searchError');
+        if (e) e.style.display = 'none';
+    }
+
+    function escapeHtml(text) {
+        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function escapeRegex(text) {
+        return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    // Focus search input on load
+    document.getElementById('searchInput').focus();
+</script>
+
+</body>
+</html>

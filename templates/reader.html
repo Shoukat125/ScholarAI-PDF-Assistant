@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en"><script>
+(function(){var t=localStorage.getItem('scholarai_theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();
+</script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScholarAI — Reader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f0e0c;
+            --surface: #1a1916;
+            --surface2: #222018;
+            --border: #2e2c28;
+            --gold: #c9a84c;
+            --gold-light: #e8c97a;
+            --text: #f0ece4;
+            --text-muted: #8a8578;
+            --success: #5cb85c;
+            --error: #e05c5c;
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 60% at 10% 10%, rgba(201,168,76,0.05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            position: fixed;
+            left: 0; top: 0; bottom: 0;
+            width: 240px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            padding: 28px 0;
+        }
+
+        .sidebar-logo {
+            padding: 0 24px 28px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; margin-bottom: 10px;
+        }
+
+        .sidebar-logo h2 { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--text); }
+        .sidebar-logo p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .sidebar-nav::-webkit-scrollbar { width: 3px; }
+        .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        .nav-label {
+            font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px;
+            color: var(--text-muted); padding: 8px 12px 4px; margin-top: 8px;
+        }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: var(--radius);
+            color: var(--text-muted); text-decoration: none;
+            font-size: 14px; font-weight: 500; transition: all 0.2s;
+        }
+
+        .nav-item:hover { background: var(--surface2); color: var(--text); }
+        .nav-item.active { background: rgba(201,168,76,0.12); color: var(--gold); }
+        .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+
+        .sidebar-footer {
+            padding: 20px 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .logout-btn {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: var(--radius);
+            color: var(--error); text-decoration: none;
+            font-size: 14px; font-weight: 500; transition: all 0.2s;
+        }
+
+        .logout-btn:hover { background: rgba(224,92,92,0.1); }
+
+        /* MAIN */
+        .main {
+            margin-left: 240px;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .topbar-left { display: flex; align-items: center; gap: 16px; }
+
+        .back-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 14px; border-radius: var(--radius);
+            background: var(--surface2); border: 1px solid var(--border);
+            color: var(--text-muted); text-decoration: none;
+            font-size: 13px; transition: all 0.2s;
+        }
+
+        .back-btn:hover { color: var(--text); border-color: var(--gold); }
+
+        .book-info h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px; color: var(--text);
+        }
+
+        .book-info p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+        .topbar-actions { display: flex; gap: 8px; }
+
+        .btn-sm {
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .btn-gold {
+            background: rgba(201,168,76,0.12);
+            color: var(--gold);
+            border-color: rgba(201,168,76,0.3);
+        }
+
+        .btn-gold:hover { background: rgba(201,168,76,0.22); }
+
+        .btn-green {
+            background: rgba(92,184,92,0.1);
+            color: var(--success);
+            border-color: rgba(92,184,92,0.25);
+        }
+
+        .btn-green:hover { background: rgba(92,184,92,0.2); }
+
+        .btn-blue {
+            background: rgba(100,150,255,0.1);
+            color: #7eb3ff;
+            border-color: rgba(100,150,255,0.25);
+        }
+
+        .btn-blue:hover { background: rgba(100,150,255,0.2); }
+
+        /* READER LAYOUT */
+        .reader-layout {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 73px);
+        }
+
+        /* PAGE CONTENT AREA */
+        .page-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .page-content-wrap {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .page-content-wrap::-webkit-scrollbar { width: 6px; }
+        .page-content-wrap::-webkit-scrollbar-track { background: transparent; }
+        .page-content-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        .page-content {
+            max-width: 720px;
+            margin: 0 auto;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 48px;
+            min-height: 500px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .page-number-badge {
+            font-family: 'Playfair Display', serif;
+            font-size: 14px;
+            color: var(--gold);
+            background: rgba(201,168,76,0.1);
+            border: 1px solid rgba(201,168,76,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .page-of {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .page-text {
+            font-size: 15px;
+            line-height: 1.9;
+            color: var(--text);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .page-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .page-empty .icon { font-size: 40px; margin-bottom: 12px; }
+        .page-empty p { font-size: 14px; }
+
+        /* LOADING */
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 32px; height: 32px;
+            border: 3px solid var(--border);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* NAVIGATION BAR */
+        .nav-bar {
+            padding: 16px 40px;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .page-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .page-input {
+            width: 64px;
+            text-align: center;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .page-input:focus { border-color: var(--gold); }
+
+        .btn-go {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border: none;
+            border-radius: 8px;
+            color: #0f0e0c;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-go:hover { opacity: 0.9; }
+
+        /* NOTES PANEL */
+        .notes-panel {
+            width: 280px;
+            border-left: 1px solid var(--border);
+            background: var(--surface);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .notes-panel-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .notes-panel-header h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .note-input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 80px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .note-input:focus { border-color: var(--gold); }
+
+        .btn-save-note {
+            margin-top: 8px;
+            width: 100%;
+            padding: 9px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border: none;
+            border-radius: 8px;
+            color: #0f0e0c;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-save-note:hover { opacity: 0.9; }
+
+        .notes-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .notes-list::-webkit-scrollbar { width: 4px; }
+        .notes-list::-webkit-scrollbar-track { background: transparent; }
+        .notes-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        .note-item {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .note-item-meta {
+            font-size: 11px;
+            color: var(--gold);
+            margin-bottom: 6px;
+        }
+
+        .note-item-text {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text);
+        }
+
+        .btn-del-note {
+            margin-top: 8px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: none;
+            background: rgba(224,92,92,0.1);
+            color: var(--error);
+            font-size: 11px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-del-note:hover { background: rgba(224,92,92,0.2); }
+
+        .notes-empty {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* PROGRESS BAR */
+        .progress-bar-wrap {
+            height: 3px;
+            background: var(--border);
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+            transition: width 0.4s ease;
+        }
+
+        /* Q&A FLOATING BTN */
+        .qa-btn {
+            position: fixed;
+            bottom: 100px;
+            right: 300px;
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 4px 16px rgba(201,168,76,0.4);
+            transition: transform 0.2s;
+            z-index: 200;
+        }
+
+        .qa-btn:hover { transform: scale(1.1); }
+
+        /* Q&A MODAL */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+            width: 500px;
+            max-width: 90vw;
+            animation: fadeUp 0.3s ease;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover { color: var(--text); }
+
+        .qa-input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 12px;
+        }
+
+        .qa-input:focus { border-color: var(--gold); }
+
+        .qa-range {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .qa-range input {
+            width: 72px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            outline: none;
+            text-align: center;
+        }
+
+        .qa-range input:focus { border-color: var(--gold); }
+
+        .btn-ask {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border: none;
+            border-radius: var(--radius);
+            color: #0f0e0c;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-ask:hover { opacity: 0.9; }
+
+        .qa-answer {
+            margin-top: 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--text);
+            display: none;
+            white-space: pre-wrap;
+        }
+
+        [data-theme="light"] {
+            --bg: #f5f2eb;
+            --surface: #ffffff;
+            --surface2: #ede9e0;
+            --border: #d8d2c4;
+            --gold: #a0722a;
+            --gold-light: #c9942e;
+            --text: #1e1c18;
+            --text-muted: #6b6457;
+            --success: #2d7a2d;
+            --error: #c0392b;
+        }
+
+        .theme-toggle {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text-muted);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .theme-toggle:hover { border-color: var(--gold); color: var(--text); }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon">📚</div>
+        <h2>ScholarAI</h2>
+        <p>Reading Intelligence</p>
+    </div>
+
+    <nav class="sidebar-nav">
+        <span class="nav-label">Main</span>
+        <a href="/" class="nav-item"><span class="icon">🏠</span> Dashboard</a>
+        <a href="/library" class="nav-item"><span class="icon">📖</span> Library</a>
+
+        <span class="nav-label">This Book</span>
+        <a href="/reader/{{ book[0] }}" class="nav-item active"><span class="icon">📄</span> Read</a>
+        <a href="/summary/{{ book[0] }}" class="nav-item"><span class="icon">📋</span> Summary</a>
+        <a href="/quiz/{{ book[0] }}" class="nav-item"><span class="icon">❓</span> Quiz</a>
+        <a href="/notes/{{ book[0] }}" class="nav-item"><span class="icon">📝</span> Notes</a>
+        <a href="/search/{{ book[0] }}" class="nav-item"><span class="icon">🔍</span> Search</a>
+        <a href="/progress/{{ book[0] }}" class="nav-item"><span class="icon">📊</span> Progress</a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">☀️</button>
+        <a href="/logout" class="logout-btn"><span>🚪</span> Logout</a>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+    <!-- TOP BAR -->
+    <div class="topbar">
+        <div class="topbar-left">
+            <a href="/library" class="back-btn">← Back</a>
+            <div class="book-info">
+                <h1>{{ book[1] }}</h1>
+                <p>{{ book[3] or 'General' }} · {{ total_pages }} pages</p>
+            </div>
+        </div>
+        <div class="topbar-actions">
+            <a href="/summary/{{ book[0] }}" class="btn-sm btn-green">📋 Summary</a>
+            <a href="/quiz/{{ book[0] }}" class="btn-sm btn-blue">❓ Quiz</a>
+            <a href="/search/{{ book[0] }}" class="btn-sm btn-gold">🔍 Search</a>
+        </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+
+    <!-- READER LAYOUT -->
+    <div class="reader-layout">
+        <!-- PAGE AREA -->
+        <div class="page-area">
+            <div class="page-content-wrap">
+                <div class="page-content" id="pageContent">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading page...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NAV BAR -->
+            <div class="nav-bar">
+                <button class="nav-btn" id="prevBtn" onclick="changePage(-1)">← Previous</button>
+
+                <div class="page-input-wrap">
+                    <span>Page</span>
+                    <input type="number" class="page-input" id="pageInput"
+                           min="1" max="{{ total_pages }}" value="1">
+                    <span>of {{ total_pages }}</span>
+                    <button class="btn-go" onclick="goToPage()">Go</button>
+                </div>
+
+                <button class="nav-btn" id="nextBtn" onclick="changePage(1)">Next →</button>
+            </div>
+        </div>
+
+        <!-- NOTES PANEL -->
+        <div class="notes-panel">
+            <div class="notes-panel-header">
+                <h3>📝 Quick Notes</h3>
+                <textarea class="note-input" id="noteInput" placeholder="Add a note for this page..."></textarea>
+                <button class="btn-save-note" onclick="saveNote()">Save Note</button>
+            </div>
+            <div class="notes-list" id="notesList">
+                {% if notes %}
+                    {% for note in notes %}
+                    <div class="note-item" id="note-{{ note[0] }}">
+                        <div class="note-item-meta">📄 Page {{ note[2] or '—' }}</div>
+                        <div class="note-item-text">{{ note[3] }}</div>
+                        <button class="btn-del-note" onclick="deleteNote({{ note[0] }})">🗑 Delete</button>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="notes-empty">No notes yet. Start reading and add notes!</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Q&A FLOATING BUTTON -->
+<button class="qa-btn" onclick="document.getElementById('qaModal').classList.add('open')" title="Ask AI">🤖</button>
+
+<!-- Q&A MODAL -->
+<div class="modal-overlay" id="qaModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>🤖 Ask ScholarAI</h3>
+            <button class="modal-close" onclick="document.getElementById('qaModal').classList.remove('open')">✕</button>
+        </div>
+
+        <div class="qa-range">
+            <span>Pages:</span>
+            <input type="number" id="qaFrom" placeholder="From" value="1" min="1" max="{{ total_pages }}">
+            <span>to</span>
+            <input type="number" id="qaTo" placeholder="To" value="1" min="1" max="{{ total_pages }}">
+        </div>
+
+        <textarea class="qa-input" id="qaQuestion" placeholder="Ask anything about this book..."></textarea>
+        <button class="btn-ask" onclick="askQuestion()">Ask Question →</button>
+
+        <div class="qa-answer" id="qaAnswer"></div>
+    </div>
+</div>
+
+<script>
+    const bookId = {{ book[0] }};
+    const totalPages = {{ total_pages }};
+
+    // URL se page number check karo (search se aane par)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlPage = parseInt(urlParams.get('page'));
+    let currentPage = (urlPage >= 1 && urlPage <= {{ total_pages }}) ? urlPage : {{ last_page }};
+
+    // Load page on init
+    loadPage(currentPage);
+
+    function loadPage(page) {
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+
+        document.getElementById('pageInput').value = page;
+        document.getElementById('prevBtn').disabled = page <= 1;
+        document.getElementById('nextBtn').disabled = page >= totalPages;
+
+        // Update progress
+        const pct = Math.round((page / totalPages) * 100);
+        document.getElementById('progressFill').style.width = pct + '%';
+
+        // Update Q&A page range
+        document.getElementById('qaFrom').value = page;
+        document.getElementById('qaTo').value = page;
+
+        // Show loading
+        document.getElementById('pageContent').innerHTML = `
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading page ${page}...</p>
+            </div>`;
+
+        fetch('/api/get-page', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ book_id: bookId, page_number: page })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('pageContent').innerHTML = `
+                    <div class="page-empty">
+                        <div class="icon">⚠️</div>
+                        <p>${data.error}</p>
+                    </div>`;
+                return;
+            }
+            const content = data.content || '';
+            document.getElementById('pageContent').innerHTML = `
+                <div class="page-header">
+                    <span class="page-number-badge">Page ${page}</span>
+                    <span class="page-of">of ${totalPages} pages</span>
+                </div>
+                <div class="page-text">${content || '<i style="color:var(--text-muted)">This page appears to be empty or has no extractable text.</i>'}</div>`;
+        })
+        .catch(() => {
+            document.getElementById('pageContent').innerHTML = `
+                <div class="page-empty">
+                    <div class="icon">❌</div>
+                    <p>Failed to load page. Please try again.</p>
+                </div>`;
+        });
+    }
+
+    function changePage(delta) {
+        const newPage = currentPage + delta;
+        if (newPage >= 1 && newPage <= totalPages) loadPage(newPage);
+    }
+
+    function goToPage() {
+        const val = parseInt(document.getElementById('pageInput').value);
+        if (val >= 1 && val <= totalPages) loadPage(val);
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', e => {
+        if (document.getElementById('qaModal').classList.contains('open')) return;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changePage(1);
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') changePage(-1);
+    });
+
+    // Save Note
+    function saveNote() {
+        const text = document.getElementById('noteInput').value.trim();
+        if (!text) return;
+
+        fetch('/api/add-note', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ book_id: bookId, page_number: currentPage, note_text: text })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                document.getElementById('noteInput').value = '';
+                const list = document.getElementById('notesList');
+                const emptyMsg = list.querySelector('.notes-empty');
+                if (emptyMsg) emptyMsg.remove();
+
+                // Note ID backend se wapas nahi aata, page reload se sahi IDs milenge
+                // Temporary display ke liye card add karo
+                const div = document.createElement('div');
+                div.className = 'note-item';
+                div.dataset.temp = 'true';
+                div.innerHTML = `
+                    <div class="note-item-meta">📄 Page ${currentPage}</div>
+                    <div class="note-item-text">${text}</div>
+                    <button class="btn-del-note" onclick="this.closest('.note-item').remove()">🗑 Delete (reload for sync)</button>`;
+                list.prepend(div);
+            }
+        });
+    }
+
+    function deleteNote(noteId) {
+        fetch('/api/delete-note/' + noteId, { method: 'POST' })
+        .then(r => r.json())
+        .then(() => {
+            const el = document.getElementById('note-' + noteId);
+            if (el) el.remove();
+        });
+    }
+
+    // Ask Question
+    function askQuestion() {
+        const question = document.getElementById('qaQuestion').value.trim();
+        const pageFrom = document.getElementById('qaFrom').value;
+        const pageTo = document.getElementById('qaTo').value;
+
+        if (!question) return;
+
+        const ansDiv = document.getElementById('qaAnswer');
+        ansDiv.style.display = 'block';
+        ansDiv.textContent = '🤔 Thinking...';
+
+        fetch('/api/ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                book_id: bookId,
+                page_from: pageFrom,
+                page_to: pageTo,
+                question: question
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            ansDiv.textContent = data.answer || data.error || 'No answer.';
+        })
+        .catch(() => {
+            ansDiv.textContent = '❌ Request failed. Please try again.';
+        });
+    }
+
+    // Enter to submit Q&A
+    document.getElementById('qaQuestion').addEventListener('keydown', e => {
+        if (e.key === 'Enter' && e.ctrlKey) askQuestion();
+    });
+</script>
+
+</body>
+</html>

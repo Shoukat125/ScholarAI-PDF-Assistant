@@ -1,0 +1,14 @@
+.env
+__pycache__/
+*.pyc
+instance/
+uploads/
+scholarai.log
+scholarai
+*.db
+Standard/
+Packages
+Packages.docx
+*.pdf
+image
+.vscode
