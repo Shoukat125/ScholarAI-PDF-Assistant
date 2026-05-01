@@ -952,5 +952,20 @@
     });
 </script>
 
+<script>
+    function toggleTheme() {
+        const cur = document.documentElement.getAttribute('data-theme');
+        const nxt = cur === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', nxt);
+        localStorage.setItem('scholarai_theme', nxt);
+        const btn = document.getElementById('themeBtn');
+        if (btn) btn.textContent = nxt === 'dark' ? '☀️' : '🌙';
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        const t = localStorage.getItem('scholarai_theme') || 'dark';
+        const btn = document.getElementById('themeBtn');
+        if (btn) btn.textContent = t === 'dark' ? '☀️' : '🌙';
+    });
+</script>
 </body>
 </html>

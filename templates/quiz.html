@@ -9,18 +9,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0f0e0c;
-            --surface: #1a1916;
-            --surface2: #222018;
-            --border: #2e2c28;
+            --bg: #1a0a0a;
+            --surface: #5c1a1a;
+            --surface2: #6e2020;
+            --border: #8b3333;
             --gold: #c9a84c;
             --gold-light: #e8c97a;
-            --text: #f0ece4;
-            --text-muted: #8a8578;
+            --text: #f5ece4;
+            --text-muted: #d4b8a8;
             --success: #5cb85c;
             --error: #e05c5c;
-            --blue: #7eb3ff;
             --radius: 12px;
+            --sidebar-bg: #5c1a1a;
+            --sidebar-border: #8b3333;
+            --stat-bg: #6e2020;
+            --stat-border: #8b3333;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -205,16 +208,81 @@
         .btn-retry:hover { opacity: 0.9; }
 
         [data-theme="light"] {
-            --bg: #f5f2eb;
-            --surface: #ffffff;
-            --surface2: #ede9e0;
-            --border: #d8d2c4;
-            --gold: #a0722a;
-            --gold-light: #c9942e;
-            --text: #1e1c18;
-            --text-muted: #6b6457;
+            --bg: #fdf6f0;
+            --surface: #7a1f1f;
+            --surface2: #8b2828;
+            --border: #a33030;
+            --gold: #c9a84c;
+            --gold-light: #e8c97a;
+            --text: #ffffff;
+            --text-muted: #f0d0c0;
             --success: #2d7a2d;
-            --error: #c0392b;
+            --error: #ff6b6b;
+            --sidebar-bg: #7a1f1f;
+            --sidebar-border: #a33030;
+            --stat-bg: #8b2828;
+            --stat-border: #a33030;
+        }
+        
+        [data-theme="light"] .main,
+        [data-theme="light"] .topbar,
+        [data-theme="light"] .content {
+            background: #fdf6f0 !important;
+            color: #1e1c18 !important;
+        }
+        
+        [data-theme="light"] .topbar h1,
+        [data-theme="light"] .topbar p,
+        [data-theme="light"] .section-title,
+        [data-theme="light"] h1,
+        [data-theme="light"] h2,
+        [data-theme="light"] h3 {
+            color: #1e1c18 !important;
+        }
+        
+        [data-theme="light"] .stat-value {
+            color: var(--gold-light) !important;
+        }
+        
+        [data-theme="light"] .stat-label {
+            color: rgba(255,255,255,0.8) !important;
+        }
+        
+        [data-theme="light"] .upload-card,
+        [data-theme="light"] .pw-section,
+        [data-theme="light"] .books-table,
+        [data-theme="light"] .books-section {
+            background: #ffffff !important;
+            border-color: #d8d2c4 !important;
+            color: #1e1c18 !important;
+        }
+        
+        [data-theme="light"] .upload-card h3,
+        [data-theme="light"] .pw-section h3 {
+            color: #1e1c18 !important;
+        }
+        
+        [data-theme="light"] .form-group label {
+            color: #6b6457 !important;
+        }
+        
+        [data-theme="light"] .form-group input,
+        [data-theme="light"] .form-group select {
+            background: #f5f2eb !important;
+            border-color: #d8d2c4 !important;
+            color: #1e1c18 !important;
+        }
+        
+        [data-theme="light"] table th {
+            color: #6b6457 !important;
+        }
+        
+        [data-theme="light"] table td {
+            color: #1e1c18 !important;
+        }
+        
+        [data-theme="light"] .nav-label {
+            color: rgba(255,255,255,0.6) !important;
         }
 
         .theme-toggle {
@@ -230,6 +298,48 @@
             flex-shrink: 0;
         }
         .theme-toggle:hover { border-color: var(--gold); color: var(--text); }
+    .sidebar {
+            background: #5c1a1a !important;
+            border-right: 1px solid #8b3333 !important;
+        }
+        
+        [data-theme="light"] .sidebar {
+            background: #7a1f1f !important;
+            border-right: 1px solid #a33030 !important;
+        }
+        
+        .sidebar-logo h2,
+        .sidebar-logo p { color: #f5ece4 !important; }
+        
+        [data-theme="light"] .sidebar-logo h2,
+        [data-theme="light"] .sidebar-logo p { color: #f5ece4 !important; }
+        
+        .sidebar .nav-item { color: #d4b8a8 !important; }
+        .sidebar .nav-item:hover { background: rgba(255,255,255,0.1) !important; color: #fff !important; }
+        .sidebar .nav-item.active { background: rgba(201,168,76,0.25) !important; color: var(--gold-light) !important; }
+        .sidebar .nav-label { color: rgba(255,255,255,0.5) !important; }
+        .sidebar .logout-btn { color: #ff8a8a !important; }
+        .sidebar .logout-btn:hover { background: rgba(255,255,255,0.1) !important; }
+        
+        [data-theme="light"] .sidebar .nav-item { color: #f0d0c0 !important; }
+        [data-theme="light"] .sidebar .nav-item:hover { background: rgba(255,255,255,0.15) !important; color: #fff !important; }
+        [data-theme="light"] .sidebar .nav-item.active { background: rgba(201,168,76,0.3) !important; color: #e8c97a !important; }
+
+        .stat-card {
+            background: #6e2020 !important;
+            border: 1px solid #8b3333 !important;
+        }
+        
+        [data-theme="light"] .stat-card {
+            background: #7a1f1f !important;
+            border: 1px solid #a33030 !important;
+        }
+        
+        .stat-card .stat-label { color: rgba(255,255,255,0.7) !important; }
+        .stat-card .stat-icon { filter: brightness(1.2); }
+        
+        [data-theme="light"] .stat-card .stat-label { color: rgba(255,255,255,0.75) !important; }
+        [data-theme="light"] .stat-card .stat-value { color: #e8c97a !important; }
     </style>
 </head>
 <body>
@@ -457,5 +567,20 @@
     }
 </script>
 
+<script>
+    function toggleTheme() {
+        const cur = document.documentElement.getAttribute('data-theme');
+        const nxt = cur === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', nxt);
+        localStorage.setItem('scholarai_theme', nxt);
+        const btn = document.getElementById('themeBtn');
+        if (btn) btn.textContent = nxt === 'dark' ? '☀️' : '🌙';
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        const t = localStorage.getItem('scholarai_theme') || 'dark';
+        const btn = document.getElementById('themeBtn');
+        if (btn) btn.textContent = t === 'dark' ? '☀️' : '🌙';
+    });
+</script>
 </body>
 </html>
